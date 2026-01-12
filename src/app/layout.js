@@ -2,10 +2,7 @@
 import { Theme } from "@radix-ui/themes";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import "../styles/typography-custom.css";
-// import "../styles/color-custom.css";
-import "../styles/radix-custom.css";
-import "../styles/fontIcons/style.css";
+
 import WrapContexts from "@/provider/WrapContexts";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";

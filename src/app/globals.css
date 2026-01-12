@@ -18,6 +18,8 @@
 
 :root {
   --font-sans: var(--font-dm-sans);
+  padding: 0px;
+  margin: 0px;
 }
 body {
   font-family: var(--font-dm-sans), sans-serif;
