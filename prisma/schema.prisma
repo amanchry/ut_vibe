@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String   @unique
+  password     String
+  bio          String?  // User bio/description
+  admin        Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  posts        Post[]   // Posts created by user
+}
+
+model Post {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  category    String   // "event", "gathering", "lost-found", "food", "sports", "music", "study", "celebration", "club", "other"
+  
+  // Location (for map integration)
+  location    Location?
+  
+  // Media
+  images      String[] // Array of Cloudinary URLs
+  imageIds     String[] // Array of Cloudinary public IDs for deletion
+  
+  // Engagement
+  likes       Int      @default(0)
+  likedBy     String[] // Array of user IDs who liked this post
+  dislikes    Int      @default(0)
+  dislikedBy String[] // Array of user IDs who disliked this post
+  
+  // Post settings
+  isAnonymous Boolean  @default(true) // Posts are anonymous by default
+  expiresAt    DateTime // Posts expire after 1 week (ephemeral)
+  
+  // Tags for search
+  tags        String[] // Keywords/tags for search
+  
+  // Author
+  authorId    String   @db.ObjectId
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([authorId])
+  @@index([category])
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+model Location {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  latitude  Float    // Latitude for map
+  longitude Float    // Longitude for map
+  postId    String   @unique @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@index([latitude, longitude]) // For geospatial queries
+}
