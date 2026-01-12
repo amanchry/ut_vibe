@@ -866,11 +866,23 @@ export default function HomePage() {
                     {session?.user && (
                       <Dialog.Root open={open} onOpenChange={setOpen}>
                         <Dialog.Trigger asChild>
-                          <button className="flex items-center gap-2 rounded-lg bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 transition whitespace-nowrap">
-                            <PlusCircle className="h-5 w-5" /> Create Post
+                          <button
+                            className={[
+                              "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium",
+                              "border shadow-sm transition-all whitespace-nowrap",
+                              "focus:outline-none focus:ring-2 focus:ring-blue-500/30",
+                              "bg-gray-900 text-white border-gray-900",
+                              "hover:bg-gray-800 hover:shadow-md",
+                              "active:scale-[0.98]",
+                            ].join(" ")}
+                          >
+                            <PlusCircle className="h-4.5 w-4.5" />
+                            <span>Create Post</span>
                           </button>
                         </Dialog.Trigger>
                       </Dialog.Root>
+
+
                     )}
                   </div>
 
@@ -1008,7 +1020,7 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
               <h1 className="text-lg sm:text-2xl font-semibold text-gray-800">
-                Campus Feed {posts.length > 0 && `(${posts.length})`}
+                {/* Campus Feed {posts.length > 0 && `(${posts.length})`} */}
               </h1>
 
               <div className="flex items-center gap-2 sm:gap-3">
@@ -1032,9 +1044,19 @@ export default function HomePage() {
                 {session?.user && (
                   <Dialog.Root open={open} onOpenChange={setOpen}>
                     <Dialog.Trigger asChild>
-                      <button className="flex items-center gap-2 rounded-lg bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 transition whitespace-nowrap">
-                        <PlusCircle className="h-5 w-5" /> Create Post
-                      </button>
+    <button
+      className={[
+        "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium",
+        "border shadow-sm transition-all whitespace-nowrap",
+        "focus:outline-none focus:ring-2 focus:ring-blue-500/30",
+        "bg-gray-900 text-white border-gray-900",
+        "hover:bg-gray-800 hover:shadow-md",
+        "active:scale-[0.98]",
+      ].join(" ")}
+    >
+      <PlusCircle className="h-4.5 w-4.5" />
+      <span>Create Post</span>
+    </button>
                     </Dialog.Trigger>
 
                     <Dialog.Portal>
@@ -1524,7 +1546,7 @@ export default function HomePage() {
               <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-2xl max-h-[90vh] overflow-y-auto -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <Dialog.Title className="text-xl font-semibold">
-                    Share What's Happening 
+                    Share What's Happening
                   </Dialog.Title>
                   <Dialog.Close asChild>
                     <button className="p-1 hover:bg-gray-100 rounded-full">
