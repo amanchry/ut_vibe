@@ -51,6 +51,8 @@ function PostCard({ post, session, onLike, onDislike, onEdit, onDelete }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [imageViewerIndex, setImageViewerIndex] = useState(0);
 
   // Reset image index when post changes
   useEffect(() => {
@@ -264,6 +266,29 @@ function PostCard({ post, session, onLike, onDislike, onEdit, onDelete }) {
     setCurrentImageIndex(index);
   };
 
+  const openImageViewer = (index) => {
+    setImageViewerIndex(index);
+    setImageViewerOpen(true);
+  };
+
+  const showPrevViewerImage = (e) => {
+    e?.stopPropagation();
+    setImageViewerIndex((prev) =>
+      post.images && post.images.length > 0
+        ? (prev - 1 + post.images.length) % post.images.length
+        : prev
+    );
+  };
+
+  const showNextViewerImage = (e) => {
+    e?.stopPropagation();
+    setImageViewerIndex((prev) =>
+      post.images && post.images.length > 0
+        ? (prev + 1) % post.images.length
+        : prev
+    );
+  };
+
   const isAuthor = session?.user?.id === post.authorId || session?.user?.admin;
 
   return (
@@ -383,6 +408,21 @@ function PostCard({ post, session, onLike, onDislike, onEdit, onDelete }) {
               ))}
             </div>
           )}
+
+          {/* Full view button */}
+          <div className="absolute bottom-3 right-3 z-10">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openImageViewer(currentImageIndex);
+              }}
+              className="inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium tracking-tight text-gray-700 shadow-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            >
+              <ImageIcon className="h-3.5 w-3.5 text-gray-600" />
+              <span>View full image</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -477,6 +517,61 @@ function PostCard({ post, session, onLike, onDislike, onEdit, onDelete }) {
           )}
         </div>
       </div>
+      <Dialog.Root open={imageViewerOpen} onOpenChange={setImageViewerOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+          <Dialog.Content className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4">
+            <div className="absolute top-4 right-4">
+              <Dialog.Close asChild>
+                <button
+                  type="button"
+                  className="rounded-full bg-white/90 p-2 text-gray-700 shadow-lg transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  aria-label="Close image viewer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </Dialog.Close>
+            </div>
+
+            {post.images?.[imageViewerIndex] && (
+              <div className="relative flex w-full max-w-4xl max-h-[90vh] items-center justify-center overflow-hidden rounded-2xl bg-white/10 p-2 shadow-2xl">
+                <img
+                  src={post.images[imageViewerIndex]}
+                  alt={`${post.title} - Full image ${imageViewerIndex + 1}`}
+                  className="max-h-[90vh] max-w-full rounded-xl object-contain"
+                />
+
+                {post.images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={showPrevViewerImage}
+                      className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 focus:outline-none focus:ring-2 focus:ring-white"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={showNextViewerImage}
+                      className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 focus:outline-none focus:ring-2 focus:ring-white"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {post.images && post.images.length > 0 && (
+              <span className="mt-3 text-sm text-white/80">
+                {imageViewerIndex + 1} / {post.images.length}
+              </span>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }
