@@ -10,7 +10,7 @@ import dynamic from "next/dynamic";
 import ResizableSplitView from "@/components/ResizableSplitView";
 import LocationPicker from "@/components/LocationPicker";
 import * as Dialog from "@radix-ui/react-dialog";
-import { PlusCircle, X, Search, Heart, MapPin, Clock, ImageIcon, Trash2, ChevronLeft, ChevronRight, MoreVertical, Edit, Trash, ThumbsDown, Map, List, Eye, EyeOff } from "lucide-react";
+import { PlusCircle, X, Search, Heart, MapPin, Clock, ImageIcon, Trash2, ChevronLeft, ChevronRight, MoreVertical, Edit, Trash, ThumbsDown, Map, List, Eye, EyeOff, RotateCw } from "lucide-react";
 
 const CampusMap = dynamic(() => import("@/components/CampusMap"), {
   ssr: false,
@@ -551,7 +551,7 @@ export default function HomePage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast("Post created! It'll be live for 1 week 🎉");
+        showToast("Post created! It'll be live for 1 week");
         fetchPosts();
         setForm({
           title: "",
@@ -818,10 +818,24 @@ export default function HomePage() {
 
         <div className="sticky top-[56px] z-30 border-b border-gray-200 bg-white/90 backdrop-blur">
           <div className="px-3 sm:px-6 py-3 flex items-center justify-between">
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-3">
               <h1 className="text-[17px] sm:text-2xl font-semibold tracking-tight text-gray-900">
                 Campus Feed  {posts.length > 0 && `(${posts.length})`}
               </h1>
+              <button
+                onClick={fetchPosts}
+                disabled={loading}
+                className={[
+                  "inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-all",
+                  "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/40",
+                  "disabled:cursor-not-allowed disabled:opacity-60",
+                ].join(" ")}
+                aria-label="Refresh campus feed"
+                title="Refresh campus feed"
+              >
+                <RotateCw className="h-4 w-4" />
+                <span>Refresh</span>
+              </button>
 
             </div>
 
@@ -1500,7 +1514,7 @@ export default function HomePage() {
                               disabled={submitting || !form.title.trim()}
                               className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {submitting ? "Posting..." : "Post it! 🚀"}
+                              {submitting ? "Posting..." : "Post it! "}
                             </button>
                           )}
                         </div>
@@ -1516,7 +1530,7 @@ export default function HomePage() {
                             disabled={submitting || !form.title.trim()}
                             className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {submitting ? "Posting..." : "Post it! 🚀"}
+                            {submitting ? "Posting..." : "Post it! "}
                           </button>
                         </div>
                       </Dialog.Content>
@@ -1807,10 +1821,20 @@ export default function HomePage() {
             <Dialog.Portal>
               <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
               <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-2xl max-h-[90vh] overflow-y-auto -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <Dialog.Title className="text-xl font-semibold">
-                    Share What's Happening
-                  </Dialog.Title>
+                <div className="flex items-center justify-between mb-4 gap-4">
+                  <div>
+                    <Dialog.Title className="text-xl font-semibold">
+                      Share What's Happening
+                    </Dialog.Title>
+                    <p className="text-sm text-gray-500">
+                      Step {createStep + 1} of 3 &middot;{" "}
+                      {createStep === 0
+                        ? "Upload photos"
+                        : createStep === 1
+                        ? "Add details"
+                        : "Location & privacy"}
+                    </p>
+                  </div>
                   <Dialog.Close asChild>
                     <button className="p-1 hover:bg-gray-100 rounded-full">
                       <X className="h-5 w-5 text-gray-500" />
@@ -1818,33 +1842,28 @@ export default function HomePage() {
                   </Dialog.Close>
                 </div>
 
-                {/* FORM FIELDS */}
-                <div className="sm:hidden mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-gray-500">
-                      Step {createStep + 1} of 3
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {[0, 1, 2].map((step) => (
-                        <span
-                          key={step}
-                          className={`h-1.5 w-6 rounded-full ${
-                            createStep >= step ? "bg-blue-600" : "bg-gray-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="mt-1 text-sm font-semibold text-gray-800">
-                    {createStep === 0
-                      ? "Add photos"
-                      : createStep === 1
-                      ? "Post details"
-                      : "Location & visibility"}
-                  </p>
+                <div className="flex gap-2 mb-4">
+                  {[0, 1, 2].map((step) => {
+                    const label =
+                      step === 0 ? "Photos" : step === 1 ? "Details" : "Location";
+                    return (
+                      <button
+                        key={step}
+                        type="button"
+                        onClick={() => setCreateStep(step)}
+                        className={`flex-1 rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                          createStep === step
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                <div className="sm:hidden space-y-4">
+                <div className="space-y-6">
                   {createStep === 0 && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2027,179 +2046,10 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div className="hidden sm:block space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Title *
-                    </label>
-                    <input
-                      type="text"
-                      value={form.title}
-                      onChange={(e) =>
-                        setForm((prev) => ({ ...prev, title: e.target.value }))
-                      }
-                      placeholder="What's happening?"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                      maxLength={100}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      value={form.description}
-                      onChange={(e) =>
-                        setForm((prev) => ({ ...prev, description: e.target.value }))
-                      }
-                      rows="4"
-                      placeholder="Tell us more about it..."
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none resize-none"
-                      maxLength={500}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category
-                    </label>
-                    <select
-                      value={form.category}
-                      onChange={(e) =>
-                        setForm((prev) => ({ ...prev, category: e.target.value }))
-                      }
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                    >
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Tags (comma-separated)
-                    </label>
-                    <input
-                      type="text"
-                      value={form.tags}
-                      onChange={(e) =>
-                        setForm((prev) => ({ ...prev, tags: e.target.value }))
-                      }
-                      placeholder="e.g. free food, library, study"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">
-                      Separate tags with commas
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Images (max 5)
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleImageChange}
-                      className="w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
-                    />
-                    {form.images.length > 0 && (
-                      <div className="mt-2 grid grid-cols-3 gap-2">
-                        {form.images.map((image, index) => (
-                          <div key={index} className="relative">
-                            <img
-                              src={URL.createObjectURL(image)}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-lg border"
-                            />
-                            <button
-                              onClick={() => removeImage(index)}
-                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <LocationPicker
-                    onLocationSelect={(location) =>
-                      setForm((prev) => ({ ...prev, location }))
-                    }
-                    initialLocation={form.location}
-                  />
-
-                  <div className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-gray-200">
-                    <div className="mb-3">
-                      <label className="text-sm font-semibold text-gray-800 block mb-1">
-                        Post Visibility
-                      </label>
-                      <p className="text-xs text-gray-600">
-                        {form.isAnonymous
-                          ? "Your name will be hidden (Anonymous)"
-                          : "Your name will be visible (Public)"}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setForm((prev) => ({ ...prev, isAnonymous: false }))}
-                        className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          !form.isAnonymous
-                            ? "bg-blue-600 text-white shadow-md"
-                            : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <span>👤</span>
-                          <span>Public</span>
-                        </div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setForm((prev) => ({ ...prev, isAnonymous: true }))}
-                        className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          form.isAnonymous
-                            ? "bg-blue-600 text-white shadow-md"
-                            : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <span>🔒</span>
-                          <span>Anonymous</span>
-                        </div>
-                      </button>
-                    </div>
-
-                    <div className="mt-3 flex items-center gap-1 text-xs text-gray-500">
-                      {form.isAnonymous ? (
-                        <>
-                          <span>🔒</span>
-                          <span>Your identity stays private</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>👤</span>
-                          <span>Your name will be shown</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="sm:hidden mt-6 flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-2 mt-6">
                   {createStep === 0 ? (
                     <Dialog.Close asChild>
-                      <button className="rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
+                      <button className="w-full sm:w-auto rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
                         Cancel
                       </button>
                     </Dialog.Close>
@@ -2207,7 +2057,7 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => setCreateStep((step) => Math.max(0, step - 1))}
-                      className="rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
+                      className="w-full sm:w-auto rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
                     >
                       Back
                     </button>
@@ -2218,7 +2068,7 @@ export default function HomePage() {
                       type="button"
                       onClick={() => setCreateStep((step) => Math.min(2, step + 1))}
                       disabled={createStep === 1 && !form.title.trim()}
-                      className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>
@@ -2226,26 +2076,11 @@ export default function HomePage() {
                     <button
                       onClick={handleCreate}
                       disabled={submitting || !form.title.trim()}
-                      className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {submitting ? "Posting..." : "Post it! 🚀"}
+                      {submitting ? "Posting..." : "Post it! "}
                     </button>
                   )}
-                </div>
-
-                <div className="hidden sm:flex mt-6 justify-end gap-2">
-                  <Dialog.Close asChild>
-                    <button className="rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">
-                      Cancel
-                    </button>
-                  </Dialog.Close>
-                  <button
-                    onClick={handleCreate}
-                    disabled={submitting || !form.title.trim()}
-                    className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submitting ? "Posting..." : "Post it! 🚀"}
-                  </button>
                 </div>
               </Dialog.Content>
             </Dialog.Portal>

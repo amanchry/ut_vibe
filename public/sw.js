@@ -7,6 +7,25 @@ const STATIC_ASSETS = [
   "/icons/apple-touch-icon.png",
 ];
 
+const isStaticAsset = (request) => {
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return false;
+  return STATIC_ASSETS.includes(url.pathname);
+};
+
+const fetchAndCache = (request) => {
+  return fetch(request)
+    .then((response) => {
+      if (!response || response.status !== 200 || response.type === "opaque") {
+        return response;
+      }
+      const responseClone = response.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+      return response;
+    })
+    .catch(() => caches.match("/"));
+};
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
@@ -26,19 +45,21 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+  const url = new URL(event.request.url);
+  const isApiCall =
+    url.origin === self.location.origin && url.pathname.startsWith("/api/");
 
-      return fetch(event.request)
-        .then((response) => {
-          const responseClone = response.clone();
-          if (response.ok && event.request.url.startsWith(self.location.origin)) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          }
-          return response;
-        })
-        .catch(() => caches.match("/"));
-    })
-  );
+  if (isApiCall) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  if (isStaticAsset(event.request)) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => cached || fetchAndCache(event.request))
+    );
+    return;
+  }
+
+  event.respondWith(fetchAndCache(event.request));
 });
