@@ -6,6 +6,7 @@ import "./globals.css";
 import WrapContexts from "@/provider/WrapContexts";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 
 // const geistSans = Geist({
@@ -35,20 +36,33 @@ export const metadata = {
   title: "UT Vibe | Live Campus Map Feed",
   description:
     "UT Vibe — a real-time, map-based campus feed for spontaneous events, gatherings, and moments around you.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    title: "UT Vibe",
+    statusBarStyle: "default",
+    capable: true,
+  },
+  icons: {
+    icon: "/icons/manifest-icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
+};
+
+export const viewport = {
+  themeColor: "#2563eb",
 };
 
 export default async function RootLayout({ children }) {
   const session = await getServerSession(authOptions)
   return (
     <html lang="en">
-
-
-      <body className={`${dmSans.className} ${spaceGrotesk.variable}  antialiased`}>
+      <body className={`${dmSans.className} ${spaceGrotesk.variable} antialiased`}>
         <WrapContexts session={session}>
           <Theme accentColor="blue" panelBackground="solid" radius="medium">
             {children}
           </Theme>
         </WrapContexts>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
