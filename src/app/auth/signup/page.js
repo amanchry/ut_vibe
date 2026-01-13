@@ -181,16 +181,16 @@ const handleRegister = async (data) => {
           direction="column"
           align="center"
           justify="center"
-          className="mx-auto min-h-screen p-5 bg-[#FCFCFD]"
-          gap="8"
+          className="mx-auto min-h-screen p-4 sm:p-5 md:p-6 bg-[#FCFCFD] w-full"
+          gap="6 sm:gap-8"
         >
-          <Box>
+          <Box className="w-full">
             <Image
               src="/images/Logo.png"
               alt="Logo"
               width={174}
               height={75}
-               className="mx-auto mb-8"
+               className="mx-auto mb-6 sm:mb-8 w-auto h-auto max-w-[140px] sm:max-w-[174px]"
             />
    
               {/* <Text as="p" align="center" size="8" weight="medium">
@@ -199,30 +199,30 @@ const handleRegister = async (data) => {
               <Text
                 as="p"
                 color="gray"
-               size="3"
+               size={{ initial: "2", sm: "3" }}
                 align="center"
-                className="my-10"
+                className="my-6 sm:my-8 md:my-10 px-2"
                 weight="light"
               >
-                Join the campus vibe! Share what's happening right now, find events, meetups, and all the good stuff happening around you 🎉
+                Join the campus vibe! Share what's happening right now, find events, meetups, and all the good stuff happening around you
               </Text>
 
           </Box>
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-            <Flex direction="column" gap="6" width="100%">
+            <Flex direction="column" gap="5 sm:gap-6" width="100%">
               <Flex direction="column" gap="2">
                 <Text as="div" size="1" weight="medium" color="gray" pb="1">
                   Email
                 </Text>
-                <Box>
+                <Box className="w-full">
                   <TextField.Root
-                    size="2"
+                    size={{ initial: "2", sm: "2" }}
                     placeholder="Enter email address"
                     variant={errors.email ? "soft" : "surface"}
                     className={`${errors.email
                       ? "!bg-[#FBECEC] focus-within:!outline-[#DC4242] !border-0"
                       : "focus-within:!outline-[#3F7FC0] focus-within:!bg-transparent !border-0"
-                      } !bg-transparent border !border-[#D2D2D2] mb-1`}
+                      } !bg-transparent border !border-[#D2D2D2] mb-1 w-full`}
                     {...register("email", {
                       required: "Email is required",
                       pattern: {
@@ -233,7 +233,7 @@ const handleRegister = async (data) => {
                   />
                   <Flex height="20px" justify="start" align="center">
                     {errors.email && (
-                      <Text className="text-[#DC4242] text-sm font-normal">
+                      <Text className="text-[#DC4242] text-xs sm:text-sm font-normal">
                         {errors.email.message}
                       </Text>
                     )}
@@ -243,8 +243,9 @@ const handleRegister = async (data) => {
               <Button
                 type="submit"
                 variant="solid"
-                size="3"
+                size={{ initial: "3", sm: "3" }}
                 disabled={!isValid || isLoading}
+                className="w-full sm:w-auto"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
@@ -277,17 +278,17 @@ const handleRegister = async (data) => {
               </Button>
             </Flex>
           </form>
-          <Flex gap="2" align="center">
+          <Flex gap="2" align="center" direction={{ initial: "column", sm: "row" }} className="w-full sm:w-auto">
             <Box>
-              <Text as="p" size="2" weight="medium" color="gray" className="font-dm-sans text-[12px]">
+              <Text as="p" size={{ initial: "1", sm: "2" }} weight="medium" color="gray" className="font-dm-sans text-xs sm:text-[12px]">
                 Already vibing with us?
               </Text>
             </Box>
             <Box>
               <Button
                 variant="ghost"
-                size="3"
-                className="font-dm-sans text-[12px] !underline !underline-offset-2"
+                size={{ initial: "2", sm: "3" }}
+                className="font-dm-sans text-xs sm:text-[12px] !underline !underline-offset-2"
                 onClick={() => router.push("/auth/login")}
               >
                 Sign in instead
@@ -297,49 +298,49 @@ const handleRegister = async (data) => {
         </Flex>
       ) : !showPasswordField ? (
         <Flex
-          direction="row"
+          direction="column"
           align="start"
           justify="start"
-          gap="2"
+          gap="4"
           maxWidth="480px"
-          className="mx-auto p-5"
+          className="mx-auto p-4 sm:p-5 md:p-6 w-full min-h-screen"
         >
           <Button
-            mt="2"
             variant="ghost"
-            size="2"
+            size={{ initial: "2", sm: "2" }}
             color="gray"
             onClick={() => setShowOtpField(false)}
+            className="mb-2"
           >
-            <ChevronLeftIcon className="w-6 h-6" />
+            <ChevronLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
           <Flex
             width="100%"
             direction="column"
-            align="center"
+            align="start"
             justify="center"
             className="mx-auto"
-            gap="8"
+            gap="6 sm:gap-8"
           >
             <Flex direction="column" width="100%" gap="2" align="start">
-              <Text as="p" size="7" weight="regular">
+              <Text as="p" size={{ initial: "5", sm: "7" }} weight="regular">
                 Enter verification code
               </Text>
               <Text
                 as="p"
                 color="gray"
-                size="3"
-                className="my-10"
+                size={{ initial: "2", sm: "3" }}
+                className="my-4 sm:my-6 md:my-10"
                 weight="light"
               >
                 We just sent a code to
               </Text>
-              <Text as="p" size="3" weight="regular" color="blue">
+              <Text as="p" size={{ initial: "2", sm: "3" }} weight="regular" color="blue" className="break-all">
                 {userEmail}
               </Text>
             </Flex>
             <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-              <Flex direction="column" gap="6" width="100%">
+              <Flex direction="column" gap="5 sm:gap-6" width="100%">
                 <Flex direction="column" gap="2">
                   <Text as="div" size="1" weight="medium" color="gray" pb="2">
                     Enter the 6-digit code
@@ -351,14 +352,14 @@ const handleRegister = async (data) => {
                     otpError={otpError}
                   />
 
-                  <Flex height="20px" justify="start" align="center">
+                  <Flex height="20px" justify="start" align="center" className="min-h-[20px]">
                     {errors.otp && errors.otp.type !== "required" && (
-                      <Text color="red" size="1">
+                      <Text color="red" size={{ initial: "1", sm: "2" }} className="text-xs sm:text-sm">
                         {errors.otp.message}
                       </Text>
                     )}
                     {otpError && !errors.otp && (
-                      <Text color="red" size="1">
+                      <Text color="red" size={{ initial: "1", sm: "2" }} className="text-xs sm:text-sm">
                         {otpError}
                       </Text>
                     )}
@@ -367,25 +368,27 @@ const handleRegister = async (data) => {
                 <Button
                   type="submit"
                   variant="solid"
-                  size="3"
+                  size={{ initial: "3", sm: "3" }}
                   disabled={!isValid || isLoading}
+                  className="w-full sm:w-auto"
                 >
                   {isLoading ? "Checking..." : "Verify ✨"}
                 </Button>
               </Flex>
             </form>
-            <Flex gap="2">
+            <Flex gap="2" direction={{ initial: "column", sm: "row" }} align={{ initial: "start", sm: "center" }} className="w-full">
               <Box>
-                <Text as="p" size="2" weight="medium" color="gray">
+                <Text as="p" size={{ initial: "1", sm: "2" }} weight="medium" color="gray" className="text-xs sm:text-sm">
                   Didn&apos;t receive an email?
                 </Text>
               </Box>
               <Box>
                 <Button
                   variant="ghost"
-                  size="2"
+                  size={{ initial: "1", sm: "2" }}
                   onClick={handleResendCode}
                   disabled={isResendDisabled}
+                  className="text-xs sm:text-sm"
                 >
                   {isResendDisabled
                     ? `Resend code in ${countdown}s`
@@ -399,36 +402,37 @@ const handleRegister = async (data) => {
         <Flex
           maxWidth="480px"
           direction="column"
-          align="center"
+          align="start"
           justify="center"
-          className="mx-auto p-5"
-          gap="8"
+          className="mx-auto p-4 sm:p-5 md:p-6 w-full min-h-screen"
+          gap="6 sm:gap-8"
         >
           <Flex direction="column" width="100%" gap="2" align="start">
-            <Text as="p" size="7" weight="regular">
+            <Text as="p" size={{ initial: "5", sm: "7" }} weight="regular">
               Almost there! 🔐
             </Text>
-            <Text as="p" color="gray" size="3" className="my-10" weight="light">
+            <Text as="p" color="gray" size={{ initial: "2", sm: "3" }} className="my-4 sm:my-6 md:my-10" weight="light">
               Create a strong password (at least 8 characters with a special character)
             </Text>
 
           </Flex>
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="w-full flex flex-col gap-8"
+            className="w-full flex flex-col gap-6 sm:gap-8"
           >
-            <Flex direction="column" gap="2" width="100%">
+            <Flex direction="column" gap="4 sm:gap-5" width="100%">
 
               <Flex direction="column" gap="2">
                 <Text as="div" size="1" weight="medium" color="gray" pb="1">
                   Email
                 </Text>
                 <TextField.Root
-                  size="2"
+                  size={{ initial: "2", sm: "2" }}
                   placeholder="Enter Email"
                   type='email'
                   value={userEmail}
                   disabled
+                  className="w-full"
                 >
 
                 </TextField.Root>
@@ -439,9 +443,10 @@ const handleRegister = async (data) => {
                   Name
                 </Text>
                 <TextField.Root
-                  size="2"
+                  size={{ initial: "2", sm: "2" }}
                   placeholder="Your name"
                   type='text'
+                  className="w-full"
                   {...register("name", {
                     required: "Username is required",
                   })}
@@ -457,11 +462,12 @@ const handleRegister = async (data) => {
                   Password
                 </Text>
                 <TextField.Root
-                  size="2"
+                  size={{ initial: "2", sm: "2" }}
                   placeholder="Create a password"
                   variant={errors.password ? "soft" : "surface"}
                   color={errors.password ? "red" : undefined}
                   type={showPassword ? "text" : "password"}
+                  className="w-full"
                   {...register("password", {
                     required: "Password is required",
                     minLength: {
@@ -474,7 +480,8 @@ const handleRegister = async (data) => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="p-1 hover:bg-gray-100 rounded flex items-center"
+                      className="p-1 hover:bg-gray-100 rounded flex items-center touch-manipulation"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -490,8 +497,8 @@ const handleRegister = async (data) => {
                 </TextField.Root>
 
                 {errors.password && (
-                  <Flex height="20px" justify="start" align="center">
-                    <Text color="red" size="1">
+                  <Flex height="20px" justify="start" align="center" className="min-h-[20px]">
+                    <Text color="red" size={{ initial: "1", sm: "2" }} className="text-xs sm:text-sm">
                       {errors.password.message}
                     </Text>
                   </Flex>
@@ -503,11 +510,12 @@ const handleRegister = async (data) => {
                   Confirm Password
                 </Text>
                 <TextField.Root
-                  size="2"
+                  size={{ initial: "2", sm: "2" }}
                   placeholder="Confirm password"
                   variant={errors.confirmPassword ? "soft" : "surface"}
                   color={errors.confirmPassword ? "red" : undefined}
                   type={showConfirmPassword ? "text" : "password"}
+                  className="w-full"
                   {...register("confirmPassword", {
                     required: "Please confirm your password",
                     validate: (value, formValues) =>
@@ -519,7 +527,8 @@ const handleRegister = async (data) => {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="p-1 hover:bg-gray-100 rounded flex items-center"
+                      className="p-1 hover:bg-gray-100 rounded flex items-center touch-manipulation"
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                     >
                       {showConfirmPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -535,8 +544,8 @@ const handleRegister = async (data) => {
                 </TextField.Root>
 
                 {errors.confirmPassword && (
-                  <Flex height="20px" justify="start" align="center">
-                    <Text color="red" size="1">
+                  <Flex height="20px" justify="start" align="center" className="min-h-[20px]">
+                    <Text color="red" size={{ initial: "1", sm: "2" }} className="text-xs sm:text-sm">
                       {errors.confirmPassword.message}
                     </Text>
                   </Flex>
@@ -547,16 +556,18 @@ const handleRegister = async (data) => {
             <Button
               type="submit"
               variant="solid"
-              size="3"
+              size={{ initial: "3", sm: "3" }}
               disabled={!isValid || isLoading}
+              className="w-full sm:w-auto"
             >
               {isLoading ? "Setting you up..." : "Join UT Vibe! 🎉"}
             </Button>
           </form>
           <Button
             variant="ghost"
-            size="2"
+            size={{ initial: "1", sm: "2" }}
             onClick={() => router.push("/")}
+            className="text-xs sm:text-sm"
           >
             <ChevronLeftIcon className="w-4 h-4" />
             Back to sign in

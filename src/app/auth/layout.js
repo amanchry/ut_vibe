@@ -3,12 +3,11 @@ import Image from "next/image";
 
 function AuthLayout({ children }) {
   return (
-    <div className="!bg-[#FCFCFD] min-h-screen">
-      <Flex gap="3" align="center">
+    <div className="!bg-[#FCFCFD] min-h-screen w-full">
+      <Flex gap="3" align="center" className="w-full flex-col sm:flex-row">
         <Box
-          className="min-h-screen relative"
+          className="min-h-screen relative w-full sm:w-1/2"
           display={{ initial: "none", sm: "block" }}
-          width="50%"
         >
           <Image
             src="/images/AuthImage.jpg"
@@ -19,7 +18,9 @@ function AuthLayout({ children }) {
 
         </Box>
 
-        {children}
+        <Box className="w-full sm:w-1/2 flex items-center justify-center">
+          {children}
+        </Box>
 
       </Flex>
     </div>

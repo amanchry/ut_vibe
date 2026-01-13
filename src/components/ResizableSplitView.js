@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { List, Map } from "lucide-react";
 
 export default function ResizableSplitView({ left, right, defaultLeftWidth = 50 }) {
   const [leftWidth, setLeftWidth] = useState(defaultLeftWidth);
@@ -55,27 +56,38 @@ export default function ResizableSplitView({ left, right, defaultLeftWidth = 50 
       {/* Mobile: Stack vertically with toggle */}
       <div className="lg:hidden flex flex-col h-full">
         {/* Mobile Toggle Button */}
-        <div className="flex gap-2 p-2 bg-white border-b border-gray-200">
-          <button
-            onClick={() => setShowMap(false)}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              !showMap
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            Posts
-          </button>
-          <button
-            onClick={() => setShowMap(true)}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              showMap
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            Map
-          </button>
+        <div className="bg-white/90 backdrop-blur border-b border-gray-200 px-3 py-2">
+          <div className="flex items-center gap-3">
+
+            <div className="flex flex-1 bg-gray-100/80 rounded-full p-1 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setShowMap(false)}
+                aria-pressed={!showMap}
+                className={`flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                  !showMap
+                    ? "bg-white text-gray-900 shadow ring-1 ring-gray-200"
+                    : "text-gray-600 hover:text-gray-800 hover:bg-white/70"
+                }`}
+              >
+                <List className="h-4 w-4" aria-hidden="true" />
+                Posts
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowMap(true)}
+                aria-pressed={showMap}
+                className={`flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                  showMap
+                    ? "bg-white text-gray-900 shadow ring-1 ring-gray-200"
+                    : "text-gray-600 hover:text-gray-800 hover:bg-white/70"
+                }`}
+              >
+                <Map className="h-4 w-4" aria-hidden="true" />
+                Map
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Mobile Content */}

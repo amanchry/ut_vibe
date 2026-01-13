@@ -174,36 +174,37 @@ const handleCreatePassword = async (data) => {
         <Flex
           maxWidth="480px"
           direction="column"
-          align="center"
+          align="start"
           justify="center"
-          className="mx-auto p-5"
-          gap="8"
+          className="mx-auto p-4 sm:p-5 md:p-6 w-full min-h-screen"
+          gap="6 sm:gap-8"
         >
           <Flex direction="column" gap="2" width="100%">
-            <Text as="p" size="7" weight="light">
-              Forgot your password? No worries! 😊
+            <Text as="p" size={{ initial: "5", sm: "7" }} weight="light">
+              Forgot your password? No worries!
             </Text>
             <Text
               as="p"
               color="gray"
-              size="3"
-              className="my-10"
+              size={{ initial: "2", sm: "3" }}
+              className="my-4 sm:my-6 md:my-10"
               weight="regular"
             >
               Drop your email and we'll send you a code to reset it. Easy peasy!
             </Text>
           </Flex>
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-            <Flex direction="column" gap="6" width="100%">
+            <Flex direction="column" gap="5 sm:gap-6" width="100%">
               <Flex direction="column" gap="2">
                 <Text as="div" size="1" weight="medium" color="gray" pb="2">
                   Email
                 </Text>
                 <TextField.Root
-                  size="2"
+                  size={{ initial: "2", sm: "2" }}
                   placeholder="Enter email address"
                   variant={errors.email ? "soft" : "surface"}
                   color={errors.email ? "red" : undefined}
+                  className="w-full"
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
@@ -212,9 +213,9 @@ const handleCreatePassword = async (data) => {
                     },
                   })}
                 />
-                <Flex height="20px" justify="start" align="center">
+                <Flex height="20px" justify="start" align="center" className="min-h-[20px]">
                   {errors.email && (
-                    <Text color="red" size="1">
+                    <Text color="red" size={{ initial: "1", sm: "2" }} className="text-xs sm:text-sm">
                       {errors.email.message}
                     </Text>
                   )}
@@ -223,8 +224,9 @@ const handleCreatePassword = async (data) => {
               <Button
                 type="submit"
                 variant="solid"
-                size="3"
+                size={{ initial: "3", sm: "3" }}
                 disabled={!isValid || isLoading}
+                className="w-full sm:w-auto"
               >
                 {isLoading ? "Sending code..." : "Send me the code 📧"}
               </Button>
@@ -234,8 +236,9 @@ const handleCreatePassword = async (data) => {
             <Box>
               <Button
                 variant="ghost"
-                size="2"
+                size={{ initial: "1", sm: "2" }}
                 onClick={() => router.push("/auth/login")}
+                className="text-xs sm:text-sm"
               >
                 <ChevronLeftIcon className="w-4 h-4" />
                 Back to Sign in
@@ -245,49 +248,49 @@ const handleCreatePassword = async (data) => {
         </Flex>
       ) : !showPasswordField ? (
         <Flex
-          direction="row"
+          direction="column"
           align="start"
           justify="start"
-          gap="2"
+          gap="4"
           maxWidth="480px"
-          className="mx-auto p-5"
+          className="mx-auto p-4 sm:p-5 md:p-6 w-full min-h-screen"
         >
           <Button
-            mt="2"
             variant="ghost"
-            size="2"
+            size={{ initial: "2", sm: "2" }}
             color="gray"
             onClick={() => setShowOtpField(false)}
+            className="mb-2"
           >
-            <ChevronLeftIcon className="w-6 h-6" />
+            <ChevronLeftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
           <Flex
             width="100%"
             direction="column"
-            align="center"
+            align="start"
             justify="center"
             className="mx-auto"
-            gap="8"
+            gap="6 sm:gap-8"
           >
             <Flex direction="column" width="100%" gap="2" align="start">
-              <Text as="p" size="7" weight="regular">
+              <Text as="p" size={{ initial: "5", sm: "7" }} weight="regular">
                 Enter verification code
               </Text>
               <Text
                 as="p"
                 color="gray"
-                size="3"
-                className="my-10"
+                size={{ initial: "2", sm: "3" }}
+                className="my-4 sm:my-6 md:my-10"
                 weight="light"
               >
                 A verification code has been sent to
               </Text>
-              <Text as="p" size="3" weight="regular" color="blue">
+              <Text as="p" size={{ initial: "2", sm: "3" }} weight="regular" color="blue" className="break-all">
                 {userEmail}
               </Text>
             </Flex>
             <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-              <Flex direction="column" gap="6" width="100%">
+              <Flex direction="column" gap="5 sm:gap-6" width="100%">
                 <Flex direction="column" gap="2">
                   <Text as="div" size="1" weight="medium" color="gray" pb="2">
                     Enter the 6-digit code
@@ -300,14 +303,14 @@ const handleCreatePassword = async (data) => {
                   />
 
 
-                  <Flex height="20px" justify="start" align="center">
+                  <Flex height="20px" justify="start" align="center" className="min-h-[20px]">
                     {errors.otp && errors.otp.type !== "required" && (
-                      <Text color="red" size="1">
+                      <Text color="red" size={{ initial: "1", sm: "2" }} className="text-xs sm:text-sm">
                         {errors.otp.message}
                       </Text>
                     )}
                     {otpError && !errors.otp && (
-                      <Text color="red" size="1">
+                      <Text color="red" size={{ initial: "1", sm: "2" }} className="text-xs sm:text-sm">
                         {otpError}
                       </Text>
                     )}
@@ -316,26 +319,27 @@ const handleCreatePassword = async (data) => {
                 <Button
                   type="submit"
                   variant="solid"
-                  size="3"
+                  size={{ initial: "3", sm: "3" }}
                   disabled={!isValid || isLoading}
+                  className="w-full sm:w-auto"
                 >
                   {isLoading ? "Checking..." : "Verify ✨"}
                 </Button>
               </Flex>
             </form>
-            <Flex gap="1">
+            <Flex gap="1" direction={{ initial: "column", sm: "row" }} align={{ initial: "start", sm: "center" }} className="w-full">
               <Box>
-                <Text as="p" size="2" weight="medium" color="gray">
+                <Text as="p" size={{ initial: "1", sm: "2" }} weight="medium" color="gray" className="text-xs sm:text-sm">
                   Didn&apos;t receive an email?
                 </Text>
               </Box>
               <Box>
                 <Button
                   variant="ghost"
-                  size="2"
+                  size={{ initial: "1", sm: "2" }}
                   onClick={handleResendCode}
                   disabled={isResendDisabled}
-                  className={`${!isResendDisabled ? '!underline !underline-offset-2' : '!text-[#8B8D98]'} hover:!bg-transparent`}
+                  className={`${!isResendDisabled ? '!underline !underline-offset-2' : '!text-[#8B8D98]'} hover:!bg-transparent text-xs sm:text-sm`}
                 >
                   {isResendDisabled
                     ? `Resend code in ${countdown}s.`
@@ -349,39 +353,39 @@ const handleCreatePassword = async (data) => {
         <Flex
           maxWidth="480px"
           direction="column"
-          align="center"
+          align="start"
           justify="center"
-          className="mx-auto p-5"
-          gap="8"
+          className="mx-auto p-4 sm:p-5 md:p-6 w-full min-h-screen"
+          gap="6 sm:gap-8"
         >
           <Flex direction="column" width="100%" gap="2" align="start">
-            <Text as="p" size="7" weight="regular">
+            <Text as="p" size={{ initial: "5", sm: "7" }} weight="regular">
               Create password
             </Text>
-            <Text as="p" color="gray" size="3" className="my-10" weight="light">
+            <Text as="p" color="gray" size={{ initial: "2", sm: "3" }} className="my-4 sm:my-6 md:my-10" weight="light">
               Your password must be at least 8 characters and include at least
               one special character
             </Text>
           </Flex>
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="w-full flex flex-col gap-8"
+            className="w-full flex flex-col gap-6 sm:gap-8"
           >
-            <Flex direction="column" gap="2" width="100%">
+            <Flex direction="column" gap="4 sm:gap-5" width="100%">
               <Flex direction="column" gap="2">
                 <Text as="div" size="1" weight="medium" color="gray" pb="2">
                   Password
                 </Text>
-                <Box>
+                <Box className="w-full">
                   <TextField.Root
-                    size="2"
+                    size={{ initial: "2", sm: "2" }}
                     placeholder="Create a new password"
                     variant={errors.password ? "soft" : "surface"}
                     className={`${
                       errors.password
                         ? "!bg-[#FBECEC] focus-within:!outline-[#DC4242]"
                         : "focus-within:!outline-[#3F7FC0] focus-within:!bg-transparent"
-                    } mb-1`}
+                    } mb-1 w-full`}
                     type={showPass ? "text" : "password"}
                     {...register("password", {
                       required: "Password is required",
@@ -400,6 +404,7 @@ const handleCreatePassword = async (data) => {
                           e.preventDefault();
                           setShowPass(!showPass);
                         }}
+                        className="touch-manipulation"
                       >
                         {showPass ? (
                           <EyeOpenIcon height="14" width="14" />
@@ -409,9 +414,9 @@ const handleCreatePassword = async (data) => {
                       </IconButton>
                     </TextField.Slot>
                   </TextField.Root>
-                  <Flex height="20px" justify="start" align="center">
+                  <Flex height="20px" justify="start" align="center" className="min-h-[20px]">
                     {errors.password && (
-                      <Text className="text-[#DC4242] text-sm font-normal">
+                      <Text className="text-[#DC4242] text-xs sm:text-sm font-normal">
                         {errors.password.message}
                       </Text>
                     )}
@@ -422,16 +427,16 @@ const handleCreatePassword = async (data) => {
                 <Text as="div" size="1" weight="medium" color="gray" pb="2">
                   Confirm Password
                 </Text>
-                <Box>
+                <Box className="w-full">
                   <TextField.Root
-                    size="2"
+                    size={{ initial: "2", sm: "2" }}
                     placeholder="Confirm password"
                     variant={errors.confirmPassword ? "soft" : "surface"}
                     className={`${
                       errors.confirmPassword
                         ? "!bg-[#FBECEC] focus-within:!outline-[#DC4242]"
                         : "focus-within:!outline-[#3F7FC0] focus-within:!bg-transparent"
-                    } mb-1`}
+                    } mb-1 w-full`}
                     type={showConfPass ? "text" : "password"}
                     {...register("confirmPassword", {
                       required: "Please confirm your password",
@@ -449,6 +454,7 @@ const handleCreatePassword = async (data) => {
                           e.preventDefault();
                           setShowConfPass(!showConfPass);
                         }}
+                        className="touch-manipulation"
                       >
                         {showConfPass ? (
                           <EyeOpenIcon height="14" width="14" />
@@ -458,9 +464,9 @@ const handleCreatePassword = async (data) => {
                       </IconButton>
                     </TextField.Slot>
                   </TextField.Root>
-                  <Flex height="20px" justify="start" align="center">
+                  <Flex height="20px" justify="start" align="center" className="min-h-[20px]">
                     {errors.confirmPassword && (
-                      <Text className="text-[#DC4242] text-sm font-normal">
+                      <Text className="text-[#DC4242] text-xs sm:text-sm font-normal">
                         {errors.confirmPassword.message}
                       </Text>
                     )}
@@ -471,16 +477,18 @@ const handleCreatePassword = async (data) => {
             <Button
               type="submit"
               variant="solid"
-              size="3"
+              size={{ initial: "3", sm: "3" }}
               disabled={!isValid || isLoading}
+              className="w-full sm:w-auto"
             >
-                {isLoading ? "Resetting..." : "Reset password ✨"}
+              {isLoading ? "Resetting..." : "Reset password ✨"}
             </Button>
           </form>
           <Button
             variant="ghost"
-            size="2"
+            size={{ initial: "1", sm: "2" }}
             onClick={() => router.push("/auth/login")}
+            className="text-xs sm:text-sm"
           >
             <ChevronLeftIcon className="w-4 h-4" />
             Back to Sign in

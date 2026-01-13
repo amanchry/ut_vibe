@@ -46,16 +46,16 @@ function Login() {
       direction="column"
       align="center"
       justify="center"
-      className="mx-auto min-h-screen p-5 bg-[#FCFCFD]"
-      gap="8"
+      className="mx-auto min-h-screen p-4 sm:p-5 md:p-6 bg-[#FCFCFD] w-full"
+      gap="6 sm:gap-8"
     >
-      <Box>
+      <Box className="w-full">
         <Image
           src="/images/Logo.png"
           alt="Logo"
           width={174}
           height={75}
-          className="mx-auto mb-8"
+          className="mx-auto mb-6 sm:mb-8 w-auto h-auto max-w-[140px] sm:max-w-[174px]"
         />
         {/* <Text as="p" align="center" size="9" weight="medium">
           Welcome to UT Vibe
@@ -63,30 +63,30 @@ function Login() {
         <Text
           as="p"
           color="gray"
-          size="3"
+          size={{ initial: "2", sm: "3" }}
           align="center"
-          className="my-10"
+          className="my-6 sm:my-8 md:my-10 px-2"
           weight="light"
         >
-          Welcome back! Get back to discovering what's happening on campus 🎓
+          Welcome back! Get back to discovering what's happening on campus 
         </Text>
       </Box>
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-        <Flex direction="column" gap="6" width="100%">
-          <Flex direction="column" gap="2">
+        <Flex direction="column" gap="5 sm:gap-6" width="100%">
+          <Flex direction="column" gap="4 sm:gap-5">
             <Flex direction="column" gap="2">
               <Text as="div" size="1" weight="medium" color="gray" pb="1">
                 Email
               </Text>
-              <Box>
+              <Box className="w-full">
                 <TextField.Root
-                  size="2"
+                  size={{ initial: "2", sm: "2" }}
                   placeholder="Enter email"
                   variant={errors.email ? "soft" : "surface"}
                   className={`${errors.email
                       ? "!bg-[#FBECEC] focus-within:!outline-[#DC4242]"
                       : "focus-within:!outline-[#3F7FC0] focus-within:!bg-transparent"
-                    } mb-1`}
+                    } mb-1 w-full`}
                   {...register("email", {
                     required: "Email is required",
                     // pattern: {
@@ -97,7 +97,7 @@ function Login() {
                 />
                 <Flex height="20px" justify="start" align="center">
                   {errors.email && (
-                    <Text className="text-[#DC4242] text-sm font-normal">
+                    <Text className="text-[#DC4242] text-xs sm:text-sm font-normal">
                       {errors.email.message}
                     </Text>
                   )}
@@ -108,16 +108,16 @@ function Login() {
               <Text as="label" size="1" weight="medium" color="gray" pb="1">
                 Password
               </Text>
-              <Box>
+              <Box className="w-full">
                 <TextField.Root
-                  size="2"
+                  size={{ initial: "2", sm: "2" }}
                   placeholder="Your password"
                   variant={errors.password ? "soft" : "surface"}
                   type={showPassword ? "text" : "password"}
                   className={`${errors.password
                       ? "!bg-[#FBECEC] focus-within:!outline-[#DC4242]"
                       : "focus-within:!outline-[#3F7FC0] focus-within:!bg-transparent"
-                    } mb-1`}
+                    } mb-1 w-full`}
                   {...register("password", {
                     required: "Password is required",
                   })}
@@ -126,7 +126,8 @@ function Login() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="p-1 hover:bg-gray-100 rounded flex items-center"
+                      className="p-1 hover:bg-gray-100 rounded flex items-center touch-manipulation"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
                         <svg
@@ -159,10 +160,10 @@ function Login() {
                   </TextField.Slot>
                 </TextField.Root>
 
-                <Flex justify="between">
-                  <Flex height="20" align="center" justify="start">
+                <Flex justify="between" direction={{ initial: "column", sm: "row" }} gap={{ initial: "1", sm: "0" }} align={{ initial: "start", sm: "center" }}>
+                  <Flex height="20" align="center" justify="start" className="min-h-[20px]">
                     {errors.password && (
-                      <Text className="text-[#DC4242] text-sm font-normal">
+                      <Text className="text-[#DC4242] text-xs sm:text-sm font-normal">
                         {errors.password.message}
                       </Text>
                     )}
@@ -170,8 +171,8 @@ function Login() {
               <Button
                     type="button"
                     variant="ghost"
-                    size="2"
-                    className="!underline"
+                    size={{ initial: "1", sm: "2" }}
+                    className="!underline text-xs sm:text-sm"
                     onClick={() => router.push("/auth/forgot-password")}
                   >
                     Forgot password? 😅
@@ -181,25 +182,31 @@ function Login() {
             </Flex>
             {error && (
               <Flex>
-                <Text color="red" size="1">
+                <Text color="red" size={{ initial: "1", sm: "2" }} className="text-xs sm:text-sm">
                   {error}
                 </Text>
               </Flex>
             )}
           </Flex>
-          <Button type="submit" variant="solid" size="3" disabled={!isValid || isLoading}>
-            {isLoading ? "Getting you in..." : "Let's go! 🚀"}
+          <Button 
+            type="submit" 
+            variant="solid" 
+            size={{ initial: "3", sm: "3" }} 
+            disabled={!isValid || isLoading}
+            className="w-full sm:w-auto"
+          >
+            {isLoading ? "Getting you in..." : "Let's go!"}
           </Button>
         </Flex>
       </form>
-<Flex gap="2" align="center">
+<Flex gap="2" align="center" direction={{ initial: "column", sm: "row" }} className="w-full sm:w-auto">
         <Box>
           <Text
             as="p"
-            size="2"
+            size={{ initial: "1", sm: "2" }}
             weight="medium"
             color="gray"
-            className="font-dm-sans text-[12px]"
+            className="font-dm-sans text-xs sm:text-[12px]"
           >
             New here?
           </Text>
@@ -207,8 +214,8 @@ function Login() {
         <Box>
           <Button
             variant="ghost"
-            size="3"
-            className="!underline !underline-offset-2 font-dm-sans text-[12px] !text-[#3F7FC0] hover:!bg-transparent hover:!text-[#8cb2d9]"
+            size={{ initial: "2", sm: "3" }}
+            className="!underline !underline-offset-2 font-dm-sans text-xs sm:text-[12px] !text-[#3F7FC0] hover:!bg-transparent hover:!text-[#8cb2d9]"
             onClick={() => router.push("/auth/signup")}
           >
             Join the vibe ✨
