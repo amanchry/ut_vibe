@@ -6,11 +6,12 @@ import { Box, Flex, Separator, TextField, Badge, Switch, Text, DropdownMenu } fr
 import { useSession } from "next-auth/react";
 
 import AppHeader from "@/components/AppHeader";
+import PostCard from "@/components/PostCard";
 import dynamic from "next/dynamic";
 import ResizableSplitView from "@/components/ResizableSplitView";
 import LocationPicker from "@/components/LocationPicker";
 import * as Dialog from "@radix-ui/react-dialog";
-import { PlusCircle, X, Search, Heart, MapPin, Clock, ImageIcon, Trash2, ChevronLeft, ChevronRight, MoreVertical, Edit, Trash, ThumbsDown, Map, List, Eye, EyeOff, RotateCw } from "lucide-react";
+import { PlusCircle, X, Search, Heart, MapPin, Clock, ImageIcon, Trash2, ChevronLeft, ChevronRight, MoreVertical, Edit, Trash, ThumbsDown, Map, List, Eye, EyeOff, RotateCw, Navigation, Bookmark, Filter, XCircle } from "lucide-react";
 
 const CampusMap = dynamic(() => import("@/components/CampusMap"), {
   ssr: false,
@@ -37,545 +38,6 @@ const CATEGORIES = [
   { value: "other", label: "Other" },
 ];
 
-function PostCard({ post, session, onLike, onDislike, onEdit, onDelete }) {
-  const [isLiked, setIsLiked] = useState(
-    session?.user?.id ? post.likedBy?.includes(session.user.id) : false
-  );
-  const [isDisliked, setIsDisliked] = useState(
-    session?.user?.id ? post.dislikedBy?.includes(session.user.id) : false
-  );
-  const [likeCount, setLikeCount] = useState(post.likes || 0);
-  const [dislikeCount, setDislikeCount] = useState(post.dislikes || 0);
-  const [isLiking, setIsLiking] = useState(false);
-  const [isDisliking, setIsDisliking] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-  const [imageViewerOpen, setImageViewerOpen] = useState(false);
-  const [imageViewerIndex, setImageViewerIndex] = useState(0);
-
-  // Reset image index when post changes
-  useEffect(() => {
-    setCurrentImageIndex(0);
-  }, [post.id]);
-
-  // Minimum swipe distance (in pixels)
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && post.images && post.images.length > 0) {
-      nextImage();
-    }
-    if (isRightSwipe && post.images && post.images.length > 0) {
-      prevImage();
-    }
-  };
-
-  const getCategoryColor = (category) => {
-    const colors = {
-      event: "blue",
-      gathering: "purple",
-      "lost-found": "orange",
-      food: "green",
-      sports: "red",
-      music: "pink",
-      study: "indigo",
-      celebration: "yellow",
-      club: "cyan",
-      other: "gray",
-    };
-    return colors[category] || "gray";
-  };
-
-  const formatTimeAgo = (date) => {
-    const now = new Date();
-    const diff = now - new Date(date);
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
-
-  const handleLike = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!session?.user?.id) {
-      return;
-    }
-
-    if (isLiking || isDisliking) return;
-
-    // Optimistic update
-    const newLikedState = !isLiked;
-    const wasDisliked = isDisliked;
-    let newLikeCount = newLikedState ? likeCount + 1 : likeCount - 1;
-    let newDislikeCount = dislikeCount;
-
-    // If user was disliking, remove dislike when liking
-    if (wasDisliked && newLikedState) {
-      newDislikeCount = Math.max(0, dislikeCount - 1);
-      setIsDisliked(false);
-      setDislikeCount(newDislikeCount);
-    }
-
-    setIsLiked(newLikedState);
-    setLikeCount(newLikeCount);
-    setIsLiking(true);
-
-    try {
-      const res = await fetch(`/api/posts/${post.id}/like`, {
-        method: "POST",
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        // Update with server response
-        setIsLiked(data.post.likedBy.includes(session.user.id));
-        setIsDisliked(data.post.dislikedBy?.includes(session.user.id) || false);
-        setLikeCount(data.post.likes);
-        setDislikeCount(data.post.dislikes || 0);
-        if (onLike) {
-          onLike(post.id, data.post);
-        }
-      } else {
-        // Revert on error
-        setIsLiked(!newLikedState);
-        setLikeCount(likeCount);
-        if (wasDisliked) {
-          setIsDisliked(true);
-          setDislikeCount(dislikeCount);
-        }
-      }
-    } catch (err) {
-      console.error("Error toggling like:", err);
-      // Revert on error
-      setIsLiked(!newLikedState);
-      setLikeCount(likeCount);
-      if (wasDisliked) {
-        setIsDisliked(true);
-        setDislikeCount(dislikeCount);
-      }
-    } finally {
-      setIsLiking(false);
-    }
-  };
-
-  const handleDislike = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!session?.user?.id) {
-      return;
-    }
-
-    if (isDisliking || isLiking) return;
-
-    // Optimistic update
-    const newDislikedState = !isDisliked;
-    const wasLiked = isLiked;
-    let newDislikeCount = newDislikedState ? dislikeCount + 1 : dislikeCount - 1;
-    let newLikeCount = likeCount;
-
-    // If user was liking, remove like when disliking
-    if (wasLiked && newDislikedState) {
-      newLikeCount = Math.max(0, likeCount - 1);
-      setIsLiked(false);
-      setLikeCount(newLikeCount);
-    }
-
-    setIsDisliked(newDislikedState);
-    setDislikeCount(newDislikeCount);
-    setIsDisliking(true);
-
-    try {
-      const res = await fetch(`/api/posts/${post.id}/dislike`, {
-        method: "POST",
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        // Update with server response
-        setIsDisliked(data.post.dislikedBy?.includes(session.user.id) || false);
-        setIsLiked(data.post.likedBy.includes(session.user.id));
-        setDislikeCount(data.post.dislikes || 0);
-        setLikeCount(data.post.likes);
-        if (onDislike) {
-          onDislike(post.id, data.post);
-        }
-      } else {
-        // Revert on error
-        setIsDisliked(!newDislikedState);
-        setDislikeCount(dislikeCount);
-        if (wasLiked) {
-          setIsLiked(true);
-          setLikeCount(likeCount);
-        }
-      }
-    } catch (err) {
-      console.error("Error toggling dislike:", err);
-      // Revert on error
-      setIsDisliked(!newDislikedState);
-      setDislikeCount(dislikeCount);
-      if (wasLiked) {
-        setIsLiked(true);
-        setLikeCount(likeCount);
-      }
-    } finally {
-      setIsDisliking(false);
-    }
-  };
-
-  const nextImage = (e) => {
-    e?.stopPropagation();
-    if (post.images && post.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % post.images.length);
-    }
-  };
-
-  const prevImage = (e) => {
-    e?.stopPropagation();
-    if (post.images && post.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + post.images.length) % post.images.length);
-    }
-  };
-
-  const goToImage = (index, e) => {
-    e?.stopPropagation();
-    setCurrentImageIndex(index);
-  };
-
-  const openImageViewer = (index) => {
-    setImageViewerIndex(index);
-    setImageViewerOpen(true);
-  };
-
-  const showPrevViewerImage = (e) => {
-    e?.stopPropagation();
-    setImageViewerIndex((prev) =>
-      post.images && post.images.length > 0
-        ? (prev - 1 + post.images.length) % post.images.length
-        : prev
-    );
-  };
-
-  const showNextViewerImage = (e) => {
-    e?.stopPropagation();
-    setImageViewerIndex((prev) =>
-      post.images && post.images.length > 0
-        ? (prev + 1) % post.images.length
-        : prev
-    );
-  };
-
-  const isAuthor = session?.user?.id === post.authorId || session?.user?.admin;
-
-  return (
-    <div className="relative rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition-all">
-      {/* Three-dot Menu - Top Right */}
-      {isAuthor && (
-        <div className="absolute top-2 right-2 z-10">
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger>
-              <button
-                className="p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-sm transition-all"
-                onClick={(e) => e.stopPropagation()}
-                aria-label="Post options"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content align="end" className="min-w-[150px]">
-              <DropdownMenu.Item
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onEdit) onEdit(post);
-                }}
-                className="cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <Edit className="h-4 w-4" />
-                  <span>Edit Post</span>
-                </div>
-              </DropdownMenu.Item>
-              <DropdownMenu.Separator />
-              <DropdownMenu.Item
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onDelete) onDelete(post);
-                }}
-                color="red"
-                className="cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <Trash className="h-4 w-4" />
-                  <span>Delete Post</span>
-                </div>
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
-        </div>
-      )}
-
-      {/* Image Carousel */}
-      {post.images && post.images.length > 0 && (
-        <div
-          className="relative w-full h-48 bg-gray-100 overflow-hidden group"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          {/* Images Container */}
-          <div
-            className="flex transition-transform duration-300 ease-in-out h-full"
-            style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
-          >
-            {post.images.map((image, index) => (
-              <div key={index} className="min-w-full h-full flex-shrink-0">
-                <img
-                  src={image}
-                  alt={`${post.title} - Image ${index + 1}`}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Image Counter */}
-          {post.images.length > 1 && (
-            <div className={`absolute top-2 ${isAuthor ? 'right-12' : 'right-2'} bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm`}>
-              {currentImageIndex + 1} / {post.images.length}
-            </div>
-          )}
-
-          {/* Navigation Arrows */}
-          {post.images.length > 1 && (
-            <>
-              {/* Previous Button */}
-              <button
-                onClick={prevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-
-              {/* Next Button */}
-              <button
-                onClick={nextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
-                aria-label="Next image"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </>
-          )}
-
-          {/* Dot Indicators */}
-          {post.images.length > 1 && (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-              {post.images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={(e) => goToImage(index, e)}
-                  className={`transition-all rounded-full ${index === currentImageIndex
-                    ? "w-2 h-2 bg-white"
-                    : "w-2 h-2 bg-white/50 hover:bg-white/75"
-                    }`}
-                  aria-label={`Go to image ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Full view button */}
-          <div className="absolute bottom-3 right-3 z-10">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                openImageViewer(currentImageIndex);
-              }}
-              className="inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium tracking-tight text-gray-700 shadow-sm transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            >
-              <ImageIcon className="h-3.5 w-3.5 text-gray-600" />
-              <span>View full image</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="p-4">
-        {/* Category Badge */}
-        <div className="flex items-center justify-between mb-2">
-          <Badge color={getCategoryColor(post.category)} size="1">
-            {CATEGORIES.find((c) => c.value === post.category)?.label || post.category}
-          </Badge>
-          {post.location && (
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <MapPin className="h-3 w-3" />
-              <span>On campus</span>
-            </div>
-          )}
-        </div>
-
-        {/* Title */}
-        <h3 className="font-semibold text-gray-800 mb-2 line-clamp-1">
-          {post.title}
-        </h3>
-
-        {/* Description */}
-        {post.description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-            {post.description}
-          </p>
-        )}
-
-        {/* Tags */}
-        {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {post.tags.slice(0, 3).map((tag, i) => (
-              <span
-                key={i}
-                className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded-full"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            {/* Like Button */}
-            <button
-              onClick={handleLike}
-              disabled={!session?.user?.id || isLiking || isDisliking}
-              className={`flex items-center gap-1 transition-all ${session?.user?.id
-                ? "hover:scale-110 cursor-pointer"
-                : "cursor-default opacity-60"
-                } ${isLiked ? "text-red-500" : "text-gray-500"}`}
-              title={session?.user?.id ? (isLiked ? "Unlike" : "Like") : "Sign in to like"}
-            >
-              <Heart
-                className={`h-4 w-4 transition-all ${isLiked ? "fill-red-500" : ""
-                  }`}
-              />
-              <span className={isLiked ? "text-red-500 font-medium" : ""}>
-                {likeCount}
-              </span>
-            </button>
-
-            {/* Dislike Button */}
-            <button
-              onClick={handleDislike}
-              disabled={!session?.user?.id || isDisliking || isLiking}
-              className={`flex items-center gap-1 transition-all ${session?.user?.id
-                ? "hover:scale-110 cursor-pointer"
-                : "cursor-default opacity-60"
-                } ${isDisliked ? "text-blue-500" : "text-gray-500"}`}
-              title={session?.user?.id ? (isDisliked ? "Remove dislike" : "Dislike") : "Sign in to dislike"}
-            >
-              <ThumbsDown
-                className={`h-4 w-4 transition-all ${isDisliked ? "fill-blue-500" : ""
-                  }`}
-              />
-              <span className={isDisliked ? "text-blue-500 font-medium" : ""}>
-                {dislikeCount}
-              </span>
-            </button>
-
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              <span>{formatTimeAgo(post.createdAt)}</span>
-            </div>
-          </div>
-          {post.isAnonymous && (
-            <span className="text-xs text-gray-400">Anonymous</span>
-          )}
-        </div>
-      </div>
-      <Dialog.Root open={imageViewerOpen} onOpenChange={setImageViewerOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
-          <Dialog.Content className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4">
-            <div className="absolute top-4 right-4">
-              <Dialog.Close asChild>
-                <button
-                  type="button"
-                  className="rounded-full bg-white/90 p-2 text-gray-700 shadow-lg transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  aria-label="Close image viewer"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </Dialog.Close>
-            </div>
-
-            {post.images?.[imageViewerIndex] && (
-              <div className="relative flex w-full max-w-4xl max-h-[90vh] items-center justify-center overflow-hidden rounded-2xl bg-white/10 p-2 shadow-2xl">
-                <img
-                  src={post.images[imageViewerIndex]}
-                  alt={`${post.title} - Full image ${imageViewerIndex + 1}`}
-                  className="max-h-[90vh] max-w-full rounded-xl object-contain"
-                />
-
-                {post.images.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={showPrevViewerImage}
-                      className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 focus:outline-none focus:ring-2 focus:ring-white"
-                      aria-label="Previous image"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={showNextViewerImage}
-                      className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 focus:outline-none focus:ring-2 focus:ring-white"
-                      aria-label="Next image"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {post.images && post.images.length > 0 && (
-              <span className="mt-3 text-sm text-white/80">
-                {imageViewerIndex + 1} / {post.images.length}
-              </span>
-            )}
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
-    </div>
-  );
-}
-
 export default function HomePage() {
   const { data: session, status } = useSession();
   const [posts, setPosts] = useState([]);
@@ -585,6 +47,10 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [showMap, setShowMap] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterHasLocation, setFilterHasLocation] = useState(null); // null, true, false
+  const [filterHasImages, setFilterHasImages] = useState(null); // null, true, false
   const [open, setOpen] = useState(false);
   const [createStep, setCreateStep] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
@@ -863,14 +329,51 @@ export default function HomePage() {
   const filteredPosts = useMemo(() => {
     const search = deferredSearchTerm.toLowerCase();
     return posts.filter((p) => {
-      return (
+      // Search filter
+      const matchesSearch = 
+        !search ||
         p.title?.toLowerCase().includes(search) ||
         p.description?.toLowerCase().includes(search) ||
         p.tags?.some((tag) => tag.toLowerCase().includes(search)) ||
-        p.category?.toLowerCase().includes(search)
-      );
+        p.category?.toLowerCase().includes(search);
+
+      // Category filter (multi-select)
+      const matchesCategory = 
+        selectedCategories.length === 0 || 
+        selectedCategories.includes(p.category);
+
+      // Location filter
+      const matchesLocation = 
+        filterHasLocation === null || 
+        (filterHasLocation === true && p.location) ||
+        (filterHasLocation === false && !p.location);
+
+      // Images filter
+      const matchesImages = 
+        filterHasImages === null ||
+        (filterHasImages === true && p.images && p.images.length > 0) ||
+        (filterHasImages === false && (!p.images || p.images.length === 0));
+
+      return matchesSearch && matchesCategory && matchesLocation && matchesImages;
     });
-  }, [posts, deferredSearchTerm]);
+  }, [posts, deferredSearchTerm, selectedCategories, filterHasLocation, filterHasImages]);
+
+  const toggleCategory = (category) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const clearAllFilters = () => {
+    setSelectedCategories([]);
+    setFilterHasLocation(null);
+    setFilterHasImages(null);
+    setSearchTerm("");
+  };
+
+  const hasActiveFilters = selectedCategories.length > 0 || filterHasLocation !== null || filterHasImages !== null || searchTerm.length > 0;
 
 
   const handlePostClick = useCallback((postId) => {
@@ -973,42 +476,236 @@ export default function HomePage() {
               left={
                 <Box className="h-full overflow-y-auto p-3 sm:p-6 bg-gray-50">
                   {/* Search and Create */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
-                    <div className="flex items-center gap-2 w-full sm:w-80">
-                      <TextField.Root
-                        size="3"
-                        radius="full"
-                        placeholder="Search campus moments..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-white"
-                      >
-                        <TextField.Slot side="left">
-                          <Search className="h-4 w-4 text-gray-500" />
-                        </TextField.Slot>
-                      </TextField.Root>
+                  <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center gap-2 w-full sm:w-80">
+                        <TextField.Root
+                          size="3"
+                          radius="full"
+                          placeholder="Search campus moments..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="w-full bg-white"
+                        >
+                          <TextField.Slot side="left">
+                            <Search className="h-4 w-4 text-gray-500" />
+                          </TextField.Slot>
+                        </TextField.Root>
+                        <button
+                          onClick={() => setShowFilters(!showFilters)}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all border ${
+                            showFilters || hasActiveFilters
+                              ? "bg-blue-50 border-blue-200 text-blue-700"
+                              : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                          }`}
+                          title="Filter posts"
+                        >
+                          <Filter className="h-4 w-4" />
+                          {hasActiveFilters && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                          )}
+                        </button>
+                      </div>
+
+                      {session?.user && (
+                        <Dialog.Root open={open} onOpenChange={setOpen}>
+                          <Dialog.Trigger asChild>
+                            <button
+                              className={[
+                                "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium",
+                                "border shadow-sm transition-all whitespace-nowrap",
+                                "focus:outline-none focus:ring-2 focus:ring-blue-500/30",
+                                "bg-gray-900 text-white border-gray-900",
+                                "hover:bg-gray-800 hover:shadow-md",
+                                "active:scale-[0.98]",
+                              ].join(" ")}
+                            >
+                              <PlusCircle className="h-4.5 w-4.5" />
+                              <span>Create Post</span>
+                            </button>
+                          </Dialog.Trigger>
+                        </Dialog.Root>
+                      )}
                     </div>
 
-                    {session?.user && (
-                      <Dialog.Root open={open} onOpenChange={setOpen}>
-                        <Dialog.Trigger asChild>
+                    {/* Filters Panel */}
+                    {showFilters && (
+                      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-sm font-semibold text-gray-900">Filters</h3>
+                          <div className="flex items-center gap-2">
+                            {hasActiveFilters && (
+                              <button
+                                onClick={clearAllFilters}
+                                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                              >
+                                Clear all
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setShowFilters(false)}
+                              className="text-gray-400 hover:text-gray-600"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Category Filters */}
+                        <div className="mb-4">
+                          <label className="block text-xs font-medium text-gray-700 mb-2">
+                            Categories
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {CATEGORIES.map((cat) => {
+                              const isSelected = selectedCategories.includes(cat.value);
+                              return (
+                                <button
+                                  key={cat.value}
+                                  onClick={() => toggleCategory(cat.value)}
+                                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                    isSelected
+                                      ? "bg-blue-600 text-white shadow-sm"
+                                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                  }`}
+                                >
+                                  {cat.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Other Filters */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Location Filter */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-2">
+                              Location
+                            </label>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setFilterHasLocation(filterHasLocation === true ? null : true)}
+                                className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                  filterHasLocation === true
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                              >
+                                Has Location
+                              </button>
+                              <button
+                                onClick={() => setFilterHasLocation(filterHasLocation === false ? null : false)}
+                                className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                  filterHasLocation === false
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                              >
+                                No Location
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Images Filter */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-2">
+                              Images
+                            </label>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setFilterHasImages(filterHasImages === true ? null : true)}
+                                className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                  filterHasImages === true
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                              >
+                                Has Images
+                              </button>
+                              <button
+                                onClick={() => setFilterHasImages(filterHasImages === false ? null : false)}
+                                className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                  filterHasImages === false
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                              >
+                                No Images
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Active Filters Summary */}
+                        {hasActiveFilters && (
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs text-gray-500">Active filters:</span>
+                              {selectedCategories.length > 0 && (
+                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                                  {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'}
+                                </span>
+                              )}
+                              {filterHasLocation !== null && (
+                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                                  {filterHasLocation ? 'Has location' : 'No location'}
+                                </span>
+                              )}
+                              {filterHasImages !== null && (
+                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                                  {filterHasImages ? 'Has images' : 'No images'}
+                                </span>
+                              )}
+                              {searchTerm && (
+                                <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                                  Search: "{searchTerm}"
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Active Filters Chips (when filters panel is closed) */}
+                    {!showFilters && hasActiveFilters && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {selectedCategories.map((cat) => (
                           <button
-                            className={[
-                              "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium",
-                              "border shadow-sm transition-all whitespace-nowrap",
-                              "focus:outline-none focus:ring-2 focus:ring-blue-500/30",
-                              "bg-gray-900 text-white border-gray-900",
-                              "hover:bg-gray-800 hover:shadow-md",
-                              "active:scale-[0.98]",
-                            ].join(" ")}
+                            key={cat}
+                            onClick={() => toggleCategory(cat)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-100 transition-colors"
                           >
-                            <PlusCircle className="h-4.5 w-4.5" />
-                            <span>Create Post</span>
+                            {CATEGORIES.find((c) => c.value === cat)?.label || cat}
+                            <XCircle className="h-3 w-3" />
                           </button>
-                        </Dialog.Trigger>
-                      </Dialog.Root>
-
-
+                        ))}
+                        {filterHasLocation !== null && (
+                          <button
+                            onClick={() => setFilterHasLocation(null)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-100 transition-colors"
+                          >
+                            {filterHasLocation ? 'Has location' : 'No location'}
+                            <XCircle className="h-3 w-3" />
+                          </button>
+                        )}
+                        {filterHasImages !== null && (
+                          <button
+                            onClick={() => setFilterHasImages(null)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-100 transition-colors"
+                          >
+                            {filterHasImages ? 'Has images' : 'No images'}
+                            <XCircle className="h-3 w-3" />
+                          </button>
+                        )}
+                        <button
+                          onClick={clearAllFilters}
+                          className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+                        >
+                          Clear all
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -1149,43 +846,237 @@ export default function HomePage() {
                 {/* Campus Feed {posts.length > 0 && `(${posts.length})`} */}
               </h1>
 
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex flex-col gap-3">
                 {/* 🔍 Search Bar */}
-                <div className="flex items-center gap-2 w-full sm:w-80">
+                <div className="flex items-center gap-2 w-full">
                   <TextField.Root
                     size="3"
                     radius="full"
                     placeholder="Search campus moments..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-white"
+                    className="flex-1 bg-white"
                   >
                     <TextField.Slot side="left">
                       <Search className="h-4 w-4 text-gray-500" />
                     </TextField.Slot>
                   </TextField.Root>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all border ${
+                      showFilters || hasActiveFilters
+                        ? "bg-blue-50 border-blue-200 text-blue-700"
+                        : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                    }`}
+                    title="Filter posts"
+                  >
+                    <Filter className="h-4 w-4" />
+                    {hasActiveFilters && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                    )}
+                  </button>
                 </div>
 
-                {/* Create Post Button */}
-                {session?.user && (
-                  <Dialog.Root open={open} onOpenChange={setOpen}>
-                    <Dialog.Trigger asChild>
-    <button
-      className={[
-        "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium",
-        "border shadow-sm transition-all whitespace-nowrap",
-        "focus:outline-none focus:ring-2 focus:ring-blue-500/30",
-        "bg-gray-900 text-white border-gray-900",
-        "hover:bg-gray-800 hover:shadow-md",
-        "active:scale-[0.98]",
-      ].join(" ")}
-    >
-      <PlusCircle className="h-4.5 w-4.5" />
-      <span>Create Post</span>
-    </button>
-                    </Dialog.Trigger>
+                {/* Filters Panel - Mobile */}
+                {showFilters && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-gray-900">Filters</h3>
+                      <div className="flex items-center gap-2">
+                        {hasActiveFilters && (
+                          <button
+                            onClick={clearAllFilters}
+                            className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                          >
+                            Clear all
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setShowFilters(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
 
-                    <Dialog.Portal>
+                    {/* Category Filters */}
+                    <div className="mb-4">
+                      <label className="block text-xs font-medium text-gray-700 mb-2">
+                        Categories
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {CATEGORIES.map((cat) => {
+                          const isSelected = selectedCategories.includes(cat.value);
+                          return (
+                            <button
+                              key={cat.value}
+                              onClick={() => toggleCategory(cat.value)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                isSelected
+                                  ? "bg-blue-600 text-white shadow-sm"
+                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              }`}
+                            >
+                              {cat.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Other Filters */}
+                    <div className="grid grid-cols-1 gap-4">
+                      {/* Location Filter */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Location
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setFilterHasLocation(filterHasLocation === true ? null : true)}
+                            className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                              filterHasLocation === true
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
+                            Has Location
+                          </button>
+                          <button
+                            onClick={() => setFilterHasLocation(filterHasLocation === false ? null : false)}
+                            className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                              filterHasLocation === false
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
+                            No Location
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Images Filter */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Images
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setFilterHasImages(filterHasImages === true ? null : true)}
+                            className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                              filterHasImages === true
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
+                            Has Images
+                          </button>
+                          <button
+                            onClick={() => setFilterHasImages(filterHasImages === false ? null : false)}
+                            className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                              filterHasImages === false
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
+                            No Images
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Filters Summary */}
+                    {hasActiveFilters && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs text-gray-500">Active filters:</span>
+                          {selectedCategories.length > 0 && (
+                            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                              {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'}
+                            </span>
+                          )}
+                          {filterHasLocation !== null && (
+                            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                              {filterHasLocation ? 'Has location' : 'No location'}
+                            </span>
+                          )}
+                          {filterHasImages !== null && (
+                            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                              {filterHasImages ? 'Has images' : 'No images'}
+                            </span>
+                          )}
+                          {searchTerm && (
+                            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                              Search: "{searchTerm}"
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Active Filters Chips (when filters panel is closed) - Mobile */}
+                {!showFilters && hasActiveFilters && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => toggleCategory(cat)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        {CATEGORIES.find((c) => c.value === cat)?.label || cat}
+                        <XCircle className="h-3 w-3" />
+                      </button>
+                    ))}
+                    {filterHasLocation !== null && (
+                      <button
+                        onClick={() => setFilterHasLocation(null)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        {filterHasLocation ? 'Has location' : 'No location'}
+                        <XCircle className="h-3 w-3" />
+                      </button>
+                    )}
+                    {filterHasImages !== null && (
+                      <button
+                        onClick={() => setFilterHasImages(null)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        {filterHasImages ? 'Has images' : 'No images'}
+                        <XCircle className="h-3 w-3" />
+                      </button>
+                    )}
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Create Post Button */}
+              {session?.user && (
+                <Dialog.Root open={open} onOpenChange={setOpen}>
+                  <Dialog.Trigger asChild>
+                    <button
+                      className={[
+                        "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium",
+                        "border shadow-sm transition-all whitespace-nowrap",
+                        "focus:outline-none focus:ring-2 focus:ring-blue-500/30",
+                        "bg-gray-900 text-white border-gray-900",
+                        "hover:bg-gray-800 hover:shadow-md",
+                        "active:scale-[0.98]",
+                      ].join(" ")}
+                    >
+                      <PlusCircle className="h-4.5 w-4.5" />
+                      <span>Create Post</span>
+                    </button>
+                  </Dialog.Trigger>
+                  <Dialog.Portal>
                       <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
                       <Dialog.Content className="fixed top-0 left-0 right-0 bottom-0 sm:top-1/2 sm:left-1/2 sm:w-[90vw] sm:max-w-2xl sm:max-h-[90vh] sm:rounded-xl sm:-translate-x-1/2 sm:-translate-y-1/2 overflow-y-auto bg-white p-4 sm:p-6 shadow-xl z-50">
                         <div className="flex items-center justify-between mb-4">
@@ -1632,10 +1523,9 @@ export default function HomePage() {
                     </Dialog.Portal>
                   </Dialog.Root>
                 )}
-              </div>
             </div>
 
-            {/* Edit Post Dialog */}
+            {/* Posts List */}
             {session?.user && editingPost && (
               <Dialog.Root open={editOpen} onOpenChange={setEditOpen}>
                 <Dialog.Portal>

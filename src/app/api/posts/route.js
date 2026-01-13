@@ -124,6 +124,7 @@ export async function POST(req) {
       likedBy: [],
       dislikes: 0,
       dislikedBy: [],
+      bookmarkedBy: [],
     };
 
     // If location is provided, create location relation

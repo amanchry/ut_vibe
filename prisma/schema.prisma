@@ -39,6 +39,7 @@ model Post {
   likedBy     String[] // Array of user IDs who liked this post
   dislikes    Int      @default(0)
   dislikedBy String[] // Array of user IDs who disliked this post
+  bookmarkedBy String[] // Array of user IDs who bookmarked this post
   
   // Post settings
   isAnonymous Boolean  @default(true) // Posts are anonymous by default

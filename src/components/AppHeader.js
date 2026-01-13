@@ -6,6 +6,7 @@ import Link from "next/link";
 import { DropdownMenu, Separator } from "@radix-ui/themes";
 import { signOut, useSession } from "next-auth/react";
 import ProfileDropDown from "./ProfileDropDown";
+import { User } from "lucide-react";
 
 function AppHeader() {
   const { data: session } = useSession();
@@ -96,8 +97,16 @@ function AppHeader() {
                   <Separator size="4" />
                 </div>
 
+                <Link
+                  href="/profile"
+                  className="mt-4 inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition "
+                >
+                  <User className="h-4 w-4" />
+                  <span>View Profile</span>
+                </Link>
+
                 <button
-                  className="mt-4 inline-flex items-center justify-center rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:border-red-300 hover:text-red-700 transition"
+                  className="mt-3 inline-flex items-center justify-center rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:border-red-300 hover:text-red-700 transition"
                   onClick={() =>
                     signOut({ redirect: false }).then(() => {
                       window.location.href = `${process.env.NEXT_PUBLIC_URL}/auth/login`;
